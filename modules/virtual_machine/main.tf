@@ -11,6 +11,9 @@ resource "azurerm_linux_virtual_machine" "this" {
   admin_password                  = var.admin_password
   disable_password_authentication = false
 
+  # Bootstrap script for Docker installation
+  custom_data = var.custom_data
+
   os_disk {
     caching              = var.os_disk_caching
     storage_account_type = var.storage_account_type

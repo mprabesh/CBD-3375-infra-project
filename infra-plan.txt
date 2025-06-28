@@ -12,6 +12,7 @@ Terraform will perform the following actions:
       + allow_extension_operations                             = true
       + bypass_platform_safety_checks_on_user_schedule_enabled = false
       + computer_name                                          = (known after apply)
+      + custom_data                                            = (sensitive value)
       + disable_password_authentication                        = false
       + disk_controller_type                                   = (known after apply)
       + extensions_time_budget                                 = "PT1H30M"
@@ -32,6 +33,7 @@ Terraform will perform the following actions:
       + resource_group_name                                    = "example-resources"
       + size                                                   = "Standard_B1s"
       + tags                                                   = {
+          + "Docker"      = "enabled"
           + "Environment" = "dev"
           + "Owner"       = "mprabesh"
           + "Project"     = "Example"
@@ -519,6 +521,7 @@ Terraform will perform the following actions:
       + allow_extension_operations                             = true
       + bypass_platform_safety_checks_on_user_schedule_enabled = false
       + computer_name                                          = (known after apply)
+      + custom_data                                            = (sensitive value)
       + disable_password_authentication                        = false
       + disk_controller_type                                   = (known after apply)
       + extensions_time_budget                                 = "PT1H30M"
@@ -539,6 +542,7 @@ Terraform will perform the following actions:
       + resource_group_name                                    = "example-resources"
       + size                                                   = "Standard_B1s"
       + tags                                                   = {
+          + "Docker"      = "enabled"
           + "Environment" = "dev"
           + "Owner"       = "mprabesh"
           + "Project"     = "Example"

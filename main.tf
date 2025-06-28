@@ -51,7 +51,8 @@ module "web_vm" {
   image_offer           = var.image_offer
   image_sku             = var.image_sku
   image_version         = var.image_version
-  tags                  = merge(var.tags, { "Role" = "WebServer" })
+  custom_data           = local.web_vm_docker_script
+  tags                  = merge(var.tags, { "Role" = "WebServer", "Docker" = "enabled" })
 }
 
 # Backend VM (Private Subnet)
@@ -71,10 +72,11 @@ module "backend_vm" {
   image_offer           = var.image_offer
   image_sku             = var.image_sku
   image_version         = var.image_version
-  tags                  = merge(var.tags, { "Role" = "BackendServer" })
+  custom_data           = local.backend_vm_docker_script
+  tags                  = merge(var.tags, { "Role" = "BackendServer", "Docker" = "enabled" })
 }
 
-# Database VM (Private Subnet)
+# Database VM (Private Subnet) - No Docker needed for database
 module "database_vm" {
   source                 = "./modules/virtual_machine"
   vm_name               = var.database_vm_name
@@ -91,5 +93,6 @@ module "database_vm" {
   image_offer           = var.image_offer
   image_sku             = var.image_sku
   image_version         = var.image_version
+  custom_data           = null
   tags                  = merge(var.tags, { "Role" = "DatabaseServer" })
 }
