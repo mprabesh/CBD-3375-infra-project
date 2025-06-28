@@ -87,3 +87,24 @@ output "nat_gateway_public_ip" {
   description = "NAT Gateway public IP address"
   value       = azurerm_public_ip.nat_gateway.ip_address
 }
+
+# Network Security Group Outputs
+output "public_nsg_id" {
+  description = "ID of the public subnet NSG"
+  value       = azurerm_network_security_group.public.id
+}
+
+output "private_nsg_id" {
+  description = "ID of the private subnet NSG"
+  value       = azurerm_network_security_group.private.id
+}
+
+output "public_nsg_name" {
+  description = "Name of the public subnet NSG"
+  value       = azurerm_network_security_group.public.name
+}
+
+output "private_nsg_name" {
+  description = "Name of the private subnet NSG"
+  value       = azurerm_network_security_group.private.name
+}

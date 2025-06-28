@@ -85,3 +85,14 @@ output "vm_admin_username" {
   description = "Admin username for all virtual machines"
   value       = module.web_vm.vm_admin_username
 }
+
+# Network Security Group Outputs
+output "public_nsg_name" {
+  description = "Name of the public subnet Network Security Group"
+  value       = module.networking.public_nsg_name
+}
+
+output "private_nsg_name" {
+  description = "Name of the private subnet Network Security Group"
+  value       = module.networking.private_nsg_name
+}

@@ -110,3 +110,124 @@ resource "azurerm_network_interface" "database_vm" {
 
   tags = var.tags
 }
+
+# Network Security Group for Public Subnet (Web Tier)
+resource "azurerm_network_security_group" "public" {
+  name                = "${var.vnet_name}-public-nsg"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+
+  # Allow HTTP inbound
+  security_rule {
+    name                       = "HTTP"
+    priority                   = 1001
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "80"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  # Allow HTTPS inbound
+  security_rule {
+    name                       = "HTTPS"
+    priority                   = 1002
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "443"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  # Allow SSH inbound
+  security_rule {
+    name                       = "SSH"
+    priority                   = 1003
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  tags = var.tags
+}
+
+# Network Security Group for Private Subnet (Backend/Database Tier)
+resource "azurerm_network_security_group" "private" {
+  name                = "${var.vnet_name}-private-nsg"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+
+  # Allow SSH from public subnet only
+  security_rule {
+    name                       = "SSH-from-public"
+    priority                   = 1001
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "10.0.1.0/24"  # Public subnet
+    destination_address_prefix = "*"
+  }
+
+  # Allow HTTP/API traffic from public subnet
+  security_rule {
+    name                       = "HTTP-from-public"
+    priority                   = 1002
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "80"
+    source_address_prefix      = "10.0.1.0/24"  # Public subnet
+    destination_address_prefix = "*"
+  }
+
+  # Allow API traffic (port 3000) from public subnet
+  security_rule {
+    name                       = "API-from-public"
+    priority                   = 1003
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "3000"
+    source_address_prefix      = "10.0.1.0/24"  # Public subnet
+    destination_address_prefix = "*"
+  }
+
+  # Allow database traffic (port 3306/5432) within private subnet
+  security_rule {
+    name                       = "Database-internal"
+    priority                   = 1004
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_ranges    = ["3306", "5432", "27017"]  # MySQL, PostgreSQL, MongoDB
+    source_address_prefix      = "10.0.2.0/24"  # Private subnet
+    destination_address_prefix = "*"
+  }
+
+  tags = var.tags
+}
+
+# Associate NSG with Public Subnet
+resource "azurerm_subnet_network_security_group_association" "public" {
+  subnet_id                 = azurerm_subnet.public.id
+  network_security_group_id = azurerm_network_security_group.public.id
+}
+
+# Associate NSG with Private Subnet
+resource "azurerm_subnet_network_security_group_association" "private" {
+  subnet_id                 = azurerm_subnet.private.id
+  network_security_group_id = azurerm_network_security_group.private.id
+}
