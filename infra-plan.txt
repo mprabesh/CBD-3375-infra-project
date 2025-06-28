@@ -8,7 +8,7 @@ Terraform will perform the following actions:
   # module.backend_vm.azurerm_linux_virtual_machine.this will be created
   + resource "azurerm_linux_virtual_machine" "this" {
       + admin_password                                         = (sensitive value)
-      + admin_username                                         = "azureuser"
+      + admin_username                                         = "sevastopol"
       + allow_extension_operations                             = true
       + bypass_platform_safety_checks_on_user_schedule_enabled = false
       + computer_name                                          = (known after apply)
@@ -30,13 +30,13 @@ Terraform will perform the following actions:
       + provision_vm_agent                                     = true
       + public_ip_address                                      = (known after apply)
       + public_ip_addresses                                    = (known after apply)
-      + resource_group_name                                    = "example-resources"
+      + resource_group_name                                    = "CBD-3375-resources"
       + size                                                   = "Standard_B1s"
       + tags                                                   = {
           + "Docker"      = "enabled"
-          + "Environment" = "dev"
+          + "Environment" = "production"
           + "Owner"       = "mprabesh"
-          + "Project"     = "Example"
+          + "Project"     = "CBD-3375-Virtualized Network Configuration on Azure"
           + "Role"        = "BackendServer"
         }
       + virtual_machine_id                                     = (known after apply)
@@ -64,7 +64,7 @@ Terraform will perform the following actions:
   # module.database_vm.azurerm_linux_virtual_machine.this will be created
   + resource "azurerm_linux_virtual_machine" "this" {
       + admin_password                                         = (sensitive value)
-      + admin_username                                         = "azureuser"
+      + admin_username                                         = "sevastopol"
       + allow_extension_operations                             = true
       + bypass_platform_safety_checks_on_user_schedule_enabled = false
       + computer_name                                          = (known after apply)
@@ -85,12 +85,12 @@ Terraform will perform the following actions:
       + provision_vm_agent                                     = true
       + public_ip_address                                      = (known after apply)
       + public_ip_addresses                                    = (known after apply)
-      + resource_group_name                                    = "example-resources"
+      + resource_group_name                                    = "CBD-3375-resources"
       + size                                                   = "Standard_B1s"
       + tags                                                   = {
-          + "Environment" = "dev"
+          + "Environment" = "production"
           + "Owner"       = "mprabesh"
-          + "Project"     = "Example"
+          + "Project"     = "CBD-3375-Virtualized Network Configuration on Azure"
           + "Role"        = "DatabaseServer"
         }
       + virtual_machine_id                                     = (known after apply)
@@ -120,14 +120,14 @@ Terraform will perform the following actions:
       + id                      = (known after apply)
       + idle_timeout_in_minutes = 10
       + location                = "eastus"
-      + name                    = "example-vnet-nat-gateway"
-      + resource_group_name     = "example-resources"
+      + name                    = "CBD-3375-vnet-nat-gateway"
+      + resource_group_name     = "CBD-3375-resources"
       + resource_guid           = (known after apply)
       + sku_name                = "Standard"
       + tags                    = {
-          + "Environment" = "dev"
+          + "Environment" = "production"
           + "Owner"       = "mprabesh"
-          + "Project"     = "Example"
+          + "Project"     = "CBD-3375-Virtualized Network Configuration on Azure"
         }
     }
 
@@ -150,11 +150,11 @@ Terraform will perform the following actions:
       + name                           = "backend-vm-nic"
       + private_ip_address             = (known after apply)
       + private_ip_addresses           = (known after apply)
-      + resource_group_name            = "example-resources"
+      + resource_group_name            = "CBD-3375-resources"
       + tags                           = {
-          + "Environment" = "dev"
+          + "Environment" = "production"
           + "Owner"       = "mprabesh"
-          + "Project"     = "Example"
+          + "Project"     = "CBD-3375-Virtualized Network Configuration on Azure"
         }
       + virtual_machine_id             = (known after apply)
 
@@ -181,11 +181,11 @@ Terraform will perform the following actions:
       + name                           = "database-vm-nic"
       + private_ip_address             = (known after apply)
       + private_ip_addresses           = (known after apply)
-      + resource_group_name            = "example-resources"
+      + resource_group_name            = "CBD-3375-resources"
       + tags                           = {
-          + "Environment" = "dev"
+          + "Environment" = "production"
           + "Owner"       = "mprabesh"
-          + "Project"     = "Example"
+          + "Project"     = "CBD-3375-Virtualized Network Configuration on Azure"
         }
       + virtual_machine_id             = (known after apply)
 
@@ -212,11 +212,11 @@ Terraform will perform the following actions:
       + name                           = "web-vm-nic"
       + private_ip_address             = (known after apply)
       + private_ip_addresses           = (known after apply)
-      + resource_group_name            = "example-resources"
+      + resource_group_name            = "CBD-3375-resources"
       + tags                           = {
-          + "Environment" = "dev"
+          + "Environment" = "production"
           + "Owner"       = "mprabesh"
-          + "Project"     = "Example"
+          + "Project"     = "CBD-3375-Virtualized Network Configuration on Azure"
         }
       + virtual_machine_id             = (known after apply)
 
@@ -236,8 +236,8 @@ Terraform will perform the following actions:
   + resource "azurerm_network_security_group" "private" {
       + id                  = (known after apply)
       + location            = "eastus"
-      + name                = "example-vnet-private-nsg"
-      + resource_group_name = "example-resources"
+      + name                = "CBD-3375-vnet-private-nsg"
+      + resource_group_name = "CBD-3375-resources"
       + security_rule       = [
           + {
               + access                                     = "Allow"
@@ -316,9 +316,9 @@ Terraform will perform the following actions:
             },
         ]
       + tags                = {
-          + "Environment" = "dev"
+          + "Environment" = "production"
           + "Owner"       = "mprabesh"
-          + "Project"     = "Example"
+          + "Project"     = "CBD-3375-Virtualized Network Configuration on Azure"
         }
     }
 
@@ -326,8 +326,8 @@ Terraform will perform the following actions:
   + resource "azurerm_network_security_group" "public" {
       + id                  = (known after apply)
       + location            = "eastus"
-      + name                = "example-vnet-public-nsg"
-      + resource_group_name = "example-resources"
+      + name                = "CBD-3375-vnet-public-nsg"
+      + resource_group_name = "CBD-3375-resources"
       + security_rule       = [
           + {
               + access                                     = "Allow"
@@ -385,9 +385,9 @@ Terraform will perform the following actions:
             },
         ]
       + tags                = {
-          + "Environment" = "dev"
+          + "Environment" = "production"
           + "Owner"       = "mprabesh"
-          + "Project"     = "Example"
+          + "Project"     = "CBD-3375-Virtualized Network Configuration on Azure"
         }
     }
 
@@ -401,14 +401,14 @@ Terraform will perform the following actions:
       + ip_address              = (known after apply)
       + ip_version              = "IPv4"
       + location                = "eastus"
-      + name                    = "example-vnet-nat-gateway-ip"
-      + resource_group_name     = "example-resources"
+      + name                    = "CBD-3375-vnet-nat-gateway-ip"
+      + resource_group_name     = "CBD-3375-resources"
       + sku                     = "Standard"
       + sku_tier                = "Regional"
       + tags                    = {
-          + "Environment" = "dev"
+          + "Environment" = "production"
           + "Owner"       = "mprabesh"
-          + "Project"     = "Example"
+          + "Project"     = "CBD-3375-Virtualized Network Configuration on Azure"
         }
     }
 
@@ -423,13 +423,13 @@ Terraform will perform the following actions:
       + ip_version              = "IPv4"
       + location                = "eastus"
       + name                    = "web-vm-public-ip"
-      + resource_group_name     = "example-resources"
+      + resource_group_name     = "CBD-3375-resources"
       + sku                     = "Standard"
       + sku_tier                = "Regional"
       + tags                    = {
-          + "Environment" = "dev"
+          + "Environment" = "production"
           + "Owner"       = "mprabesh"
-          + "Project"     = "Example"
+          + "Project"     = "CBD-3375-Virtualized Network Configuration on Azure"
         }
     }
 
@@ -443,8 +443,8 @@ Terraform will perform the following actions:
       + name                                          = "private-subnet"
       + private_endpoint_network_policies             = "Disabled"
       + private_link_service_network_policies_enabled = true
-      + resource_group_name                           = "example-resources"
-      + virtual_network_name                          = "example-vnet"
+      + resource_group_name                           = "CBD-3375-resources"
+      + virtual_network_name                          = "CBD-3375-vnet"
     }
 
   # module.networking.azurerm_subnet.public will be created
@@ -457,8 +457,8 @@ Terraform will perform the following actions:
       + name                                          = "public-subnet"
       + private_endpoint_network_policies             = "Disabled"
       + private_link_service_network_policies_enabled = true
-      + resource_group_name                           = "example-resources"
-      + virtual_network_name                          = "example-vnet"
+      + resource_group_name                           = "CBD-3375-resources"
+      + virtual_network_name                          = "CBD-3375-vnet"
     }
 
   # module.networking.azurerm_subnet_nat_gateway_association.private will be created
@@ -491,14 +491,14 @@ Terraform will perform the following actions:
       + guid                           = (known after apply)
       + id                             = (known after apply)
       + location                       = "eastus"
-      + name                           = "example-vnet"
+      + name                           = "CBD-3375-vnet"
       + private_endpoint_vnet_policies = "Disabled"
-      + resource_group_name            = "example-resources"
+      + resource_group_name            = "CBD-3375-resources"
       + subnet                         = (known after apply)
       + tags                           = {
-          + "Environment" = "dev"
+          + "Environment" = "production"
           + "Owner"       = "mprabesh"
-          + "Project"     = "Example"
+          + "Project"     = "CBD-3375-Virtualized Network Configuration on Azure"
         }
     }
 
@@ -506,18 +506,18 @@ Terraform will perform the following actions:
   + resource "azurerm_resource_group" "this" {
       + id       = (known after apply)
       + location = "eastus"
-      + name     = "example-resources"
+      + name     = "CBD-3375-resources"
       + tags     = {
-          + "Environment" = "dev"
+          + "Environment" = "production"
           + "Owner"       = "mprabesh"
-          + "Project"     = "Example"
+          + "Project"     = "CBD-3375-Virtualized Network Configuration on Azure"
         }
     }
 
   # module.web_vm.azurerm_linux_virtual_machine.this will be created
   + resource "azurerm_linux_virtual_machine" "this" {
       + admin_password                                         = (sensitive value)
-      + admin_username                                         = "azureuser"
+      + admin_username                                         = "sevastopol"
       + allow_extension_operations                             = true
       + bypass_platform_safety_checks_on_user_schedule_enabled = false
       + computer_name                                          = (known after apply)
@@ -539,13 +539,13 @@ Terraform will perform the following actions:
       + provision_vm_agent                                     = true
       + public_ip_address                                      = (known after apply)
       + public_ip_addresses                                    = (known after apply)
-      + resource_group_name                                    = "example-resources"
+      + resource_group_name                                    = "CBD-3375-resources"
       + size                                                   = "Standard_B1s"
       + tags                                                   = {
           + "Docker"      = "enabled"
-          + "Environment" = "dev"
+          + "Environment" = "production"
           + "Owner"       = "mprabesh"
-          + "Project"     = "Example"
+          + "Project"     = "CBD-3375-Virtualized Network Configuration on Azure"
           + "Role"        = "WebServer"
         }
       + virtual_machine_id                                     = (known after apply)
@@ -578,23 +578,23 @@ Changes to Outputs:
   + database_vm_name                = "database-vm"
   + database_vm_private_ip          = (known after apply)
   + nat_gateway_public_ip           = (known after apply)
-  + private_nsg_name                = "example-vnet-private-nsg"
+  + private_nsg_name                = "CBD-3375-vnet-private-nsg"
   + private_subnet_address_prefixes = [
       + "10.0.2.0/24",
     ]
   + private_subnet_name             = "private-subnet"
-  + public_nsg_name                 = "example-vnet-public-nsg"
+  + public_nsg_name                 = "CBD-3375-vnet-public-nsg"
   + public_subnet_address_prefixes  = [
       + "10.0.1.0/24",
     ]
   + public_subnet_name              = "public-subnet"
   + resource_group_location         = "eastus"
-  + resource_group_name             = "example-resources"
-  + vm_admin_username               = "azureuser"
+  + resource_group_name             = "CBD-3375-resources"
+  + vm_admin_username               = "sevastopol"
   + vnet_address_space              = [
       + "10.0.0.0/16",
     ]
-  + vnet_name                       = "example-vnet"
+  + vnet_name                       = "CBD-3375-vnet"
   + web_vm_name                     = "web-vm"
   + web_vm_private_ip               = (known after apply)
   + web_vm_public_ip                = (known after apply)
