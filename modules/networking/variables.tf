@@ -8,18 +8,43 @@ variable "vnet_address_space" {
   type        = list(string)
 }
 
-variable "subnet_name" {
-  description = "Name of the subnet"
+variable "public_subnet_name" {
+  description = "Name of the public subnet"
   type        = string
 }
 
-variable "subnet_address_prefixes" {
-  description = "Address prefixes for the subnet"
+variable "public_subnet_address_prefixes" {
+  description = "Address prefixes for the public subnet"
   type        = list(string)
 }
 
-variable "network_interface_name" {
-  description = "Name of the network interface"
+variable "private_subnet_name" {
+  description = "Name of the private subnet"
+  type        = string
+}
+
+variable "private_subnet_address_prefixes" {
+  description = "Address prefixes for the private subnet"
+  type        = list(string)
+}
+
+variable "web_vm_nic_name" {
+  description = "Name of the web VM network interface"
+  type        = string
+}
+
+variable "backend_vm_nic_name" {
+  description = "Name of the backend VM network interface"
+  type        = string
+}
+
+variable "database_vm_nic_name" {
+  description = "Name of the database VM network interface"
+  type        = string
+}
+
+variable "web_vm_public_ip_name" {
+  description = "Name of the web VM public IP"
   type        = string
 }
 
@@ -37,9 +62,4 @@ variable "tags" {
   description = "Tags to apply to networking resources"
   type        = map(string)
   default     = {}
-}
-
-variable "public_ip_name" {
-  description = "Name of the public IP"
-  type        = string
 }

@@ -13,37 +13,77 @@ output "vnet_address_space" {
   value       = azurerm_virtual_network.this.address_space
 }
 
-output "subnet_name" {
-  description = "Name of the subnet"
-  value       = azurerm_subnet.this.name
+output "public_subnet_name" {
+  description = "Name of the public subnet"
+  value       = azurerm_subnet.public.name
 }
 
-output "subnet_id" {
-  description = "ID of the subnet"
-  value       = azurerm_subnet.this.id
+output "public_subnet_id" {
+  description = "ID of the public subnet"
+  value       = azurerm_subnet.public.id
 }
 
-output "subnet_address_prefixes" {
-  description = "Address prefixes of the subnet"
-  value       = azurerm_subnet.this.address_prefixes
+output "public_subnet_address_prefixes" {
+  description = "Address prefixes of the public subnet"
+  value       = azurerm_subnet.public.address_prefixes
 }
 
-output "network_interface_id" {
-  description = "ID of the network interface"
-  value       = azurerm_network_interface.this.id
+output "private_subnet_name" {
+  description = "Name of the private subnet"
+  value       = azurerm_subnet.private.name
 }
 
-output "network_interface_private_ip" {
-  description = "Private IP address of the network interface"
-  value       = azurerm_network_interface.this.private_ip_address
+output "private_subnet_id" {
+  description = "ID of the private subnet"
+  value       = azurerm_subnet.private.id
 }
 
-output "public_ip_address" {
-  description = "Public IP address"
-  value       = azurerm_public_ip.this.ip_address
+output "private_subnet_address_prefixes" {
+  description = "Address prefixes of the private subnet"
+  value       = azurerm_subnet.private.address_prefixes
 }
 
-output "public_ip_id" {
-  description = "ID of the public IP"
-  value       = azurerm_public_ip.this.id
+output "web_vm_network_interface_id" {
+  description = "ID of the web VM network interface"
+  value       = azurerm_network_interface.web_vm.id
+}
+
+output "web_vm_private_ip" {
+  description = "Private IP address of the web VM network interface"
+  value       = azurerm_network_interface.web_vm.private_ip_address
+}
+
+output "backend_vm_network_interface_id" {
+  description = "ID of the backend VM network interface"
+  value       = azurerm_network_interface.backend_vm.id
+}
+
+output "backend_vm_private_ip" {
+  description = "Private IP address of the backend VM network interface"
+  value       = azurerm_network_interface.backend_vm.private_ip_address
+}
+
+output "database_vm_network_interface_id" {
+  description = "ID of the database VM network interface"
+  value       = azurerm_network_interface.database_vm.id
+}
+
+output "database_vm_private_ip" {
+  description = "Private IP address of the database VM network interface"
+  value       = azurerm_network_interface.database_vm.private_ip_address
+}
+
+output "web_vm_public_ip_address" {
+  description = "Public IP address of the web VM"
+  value       = azurerm_public_ip.web_vm.ip_address
+}
+
+output "web_vm_public_ip_id" {
+  description = "ID of the web VM public IP"
+  value       = azurerm_public_ip.web_vm.id
+}
+
+output "nat_gateway_public_ip" {
+  description = "NAT Gateway public IP address"
+  value       = azurerm_public_ip.nat_gateway.ip_address
 }

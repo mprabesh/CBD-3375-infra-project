@@ -18,33 +18,78 @@ module "resource_group" {
 }
 
 module "networking" {
-  source                   = "./modules/networking"
-  vnet_name               = var.vnet_name
-  vnet_address_space      = var.vnet_address_space
-  subnet_name             = var.subnet_name
-  subnet_address_prefixes = var.subnet_address_prefixes
-  network_interface_name  = var.network_interface_name
-  public_ip_name          = var.public_ip_name
-  location                = module.resource_group.location
-  resource_group_name     = module.resource_group.name
-  tags                    = var.tags
+  source                           = "./modules/networking"
+  vnet_name                       = var.vnet_name
+  vnet_address_space              = var.vnet_address_space
+  public_subnet_name              = var.public_subnet_name
+  public_subnet_address_prefixes  = var.public_subnet_address_prefixes
+  private_subnet_name             = var.private_subnet_name
+  private_subnet_address_prefixes = var.private_subnet_address_prefixes
+  web_vm_nic_name                 = var.web_vm_nic_name
+  backend_vm_nic_name             = var.backend_vm_nic_name
+  database_vm_nic_name            = var.database_vm_nic_name
+  web_vm_public_ip_name           = var.web_vm_public_ip_name
+  location                        = module.resource_group.location
+  resource_group_name             = module.resource_group.name
+  tags                            = var.tags
 }
 
-module "virtual_machine" {
+# Web Server VM (Public Subnet)
+module "web_vm" {
   source                 = "./modules/virtual_machine"
-  vm_name               = var.vm_name
+  vm_name               = var.web_vm_name
   resource_group_name   = module.resource_group.name
   location              = module.resource_group.location
   vm_size               = var.vm_size
   admin_username        = var.admin_username
   admin_password        = var.admin_password
-  network_interface_id  = module.networking.network_interface_id
-  os_disk_name          = var.os_disk_name
+  network_interface_id  = module.networking.web_vm_network_interface_id
+  os_disk_name          = "${var.web_vm_name}-osdisk"
   os_disk_caching       = var.os_disk_caching
   storage_account_type  = var.storage_account_type
   image_publisher       = var.image_publisher
   image_offer           = var.image_offer
   image_sku             = var.image_sku
   image_version         = var.image_version
-  tags                  = var.tags
+  tags                  = merge(var.tags, { "Role" = "WebServer" })
+}
+
+# Backend VM (Private Subnet)
+module "backend_vm" {
+  source                 = "./modules/virtual_machine"
+  vm_name               = var.backend_vm_name
+  resource_group_name   = module.resource_group.name
+  location              = module.resource_group.location
+  vm_size               = var.vm_size
+  admin_username        = var.admin_username
+  admin_password        = var.admin_password
+  network_interface_id  = module.networking.backend_vm_network_interface_id
+  os_disk_name          = "${var.backend_vm_name}-osdisk"
+  os_disk_caching       = var.os_disk_caching
+  storage_account_type  = var.storage_account_type
+  image_publisher       = var.image_publisher
+  image_offer           = var.image_offer
+  image_sku             = var.image_sku
+  image_version         = var.image_version
+  tags                  = merge(var.tags, { "Role" = "BackendServer" })
+}
+
+# Database VM (Private Subnet)
+module "database_vm" {
+  source                 = "./modules/virtual_machine"
+  vm_name               = var.database_vm_name
+  resource_group_name   = module.resource_group.name
+  location              = module.resource_group.location
+  vm_size               = var.vm_size
+  admin_username        = var.admin_username
+  admin_password        = var.admin_password
+  network_interface_id  = module.networking.database_vm_network_interface_id
+  os_disk_name          = "${var.database_vm_name}-osdisk"
+  os_disk_caching       = var.os_disk_caching
+  storage_account_type  = var.storage_account_type
+  image_publisher       = var.image_publisher
+  image_offer           = var.image_offer
+  image_sku             = var.image_sku
+  image_version         = var.image_version
+  tags                  = merge(var.tags, { "Role" = "DatabaseServer" })
 }

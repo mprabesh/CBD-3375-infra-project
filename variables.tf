@@ -22,16 +22,28 @@ variable "vnet_address_space" {
   default     = ["10.0.0.0/16"]
 }
 
-variable "subnet_name" {
-  description = "Name of the subnet"
+variable "public_subnet_name" {
+  description = "Name of the public subnet"
   type        = string
-  default     = "example-subnet"
+  default     = "public-subnet"
 }
 
-variable "subnet_address_prefixes" {
-  description = "Address prefixes for the subnet"
+variable "public_subnet_address_prefixes" {
+  description = "Address prefixes for the public subnet"
   type        = list(string)
   default     = ["10.0.1.0/24"]
+}
+
+variable "private_subnet_name" {
+  description = "Name of the private subnet"
+  type        = string
+  default     = "private-subnet"
+}
+
+variable "private_subnet_address_prefixes" {
+  description = "Address prefixes for the private subnet"
+  type        = list(string)
+  default     = ["10.0.2.0/24"]
 }
 
 variable "network_interface_name" {
@@ -117,6 +129,50 @@ variable "public_ip_name" {
   description = "Name of the public IP"
   type        = string
   default     = "example-public-ip"
+}
+
+# VM Network Interface Names
+variable "web_vm_nic_name" {
+  description = "Name of the web VM network interface"
+  type        = string
+  default     = "web-vm-nic"
+}
+
+variable "backend_vm_nic_name" {
+  description = "Name of the backend VM network interface"
+  type        = string
+  default     = "backend-vm-nic"
+}
+
+variable "database_vm_nic_name" {
+  description = "Name of the database VM network interface"
+  type        = string
+  default     = "database-vm-nic"
+}
+
+variable "web_vm_public_ip_name" {
+  description = "Name of the web VM public IP"
+  type        = string
+  default     = "web-vm-public-ip"
+}
+
+# VM Configuration
+variable "web_vm_name" {
+  description = "Name of the web virtual machine"
+  type        = string
+  default     = "web-vm"
+}
+
+variable "backend_vm_name" {
+  description = "Name of the backend virtual machine"
+  type        = string
+  default     = "backend-vm"
+}
+
+variable "database_vm_name" {
+  description = "Name of the database virtual machine"
+  type        = string
+  default     = "database-vm"
 }
 
 # Azure Authentication Variables (not needed when using Azure CLI)
