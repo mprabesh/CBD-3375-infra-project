@@ -1,0 +1,375 @@
+================================================================================
+                    CBD-3375 AZURE INFRASTRUCTURE PROJECT OVERVIEW
+================================================================================
+
+Project: CBD-3375 Virtualized Network Configuration on Azure
+Date: June 28, 2025
+Owner: mprabesh
+Environment: Production
+
+================================================================================
+                                PROJECT SUMMARY
+================================================================================
+
+This repository contains a modular Azure infrastructure using Terraform that 
+provisions a secure, production-ready environment for the CBD-3375 project.
+
+Key Features:
+- 3-tier architecture (Web, Backend, Database)
+- Secure networking with public/private subnets
+- Jump host security pattern
+- Automated Docker installation
+- Modular, reusable Terraform code
+- Network Security Groups with proper port rules
+- NAT Gateway for private subnet outbound connectivity
+
+================================================================================
+                            INFRASTRUCTURE ARCHITECTURE
+================================================================================
+
+Resource Group: CBD-3375-resources
+Location: East US
+
+Network Architecture:
+CBD-3375-vnet (10.0.0.0/16)
+├── public-subnet (10.0.1.0/24)
+│   └── web-vm (with public IP + Docker)
+└── private-subnet (10.0.2.0/24)
+    ├── backend-vm (private IP only + Docker)
+    └── database-vm (private IP only)
+
+Additional Components:
+- NAT Gateway with public IP (for private subnet outbound access)
+- Public NSG (web tier security)
+- Private NSG (backend/database tier security)
+
+================================================================================
+                            VIRTUAL MACHINE CONFIGURATION
+================================================================================
+
+VM Specifications:
+- Admin Username: sevastopol
+- Admin Password: sevastopol1234!
+- VM Size: Standard_B1s (1 vCPU, 1GB RAM)
+- Operating System: Ubuntu 20.04 LTS
+- Publisher: Canonical
+- Offer: 0001-com-ubuntu-server-focal
+- SKU: 20_04-lts
+
+VM Roles:
+1. Web VM (web-vm):
+   - Location: Public subnet
+   - Public IP: Yes
+   - Docker: Installed automatically
+   - Role: Web server, Jump host
+
+2. Backend VM (backend-vm):
+   - Location: Private subnet
+   - Public IP: No
+   - Docker: Installed automatically
+   - Role: Application backend
+
+3. Database VM (database-vm):
+   - Location: Private subnet
+   - Public IP: No
+   - Docker: Not installed
+   - Role: Database server
+
+================================================================================
+                            SECURITY CONFIGURATION
+================================================================================
+
+Network Security Groups:
+
+PUBLIC NSG (for web-vm):
+Priority | Rule Name | Port | Source    | Direction | Access
+---------|-----------|------|-----------|-----------|--------
+1001     | HTTP      | 80   | Internet  | Inbound   | Allow
+1002     | HTTPS     | 443  | Internet  | Inbound   | Allow
+1003     | SSH       | 22   | Internet  | Inbound   | Allow
+
+PRIVATE NSG (for backend-vm, database-vm):
+Priority | Rule Name          | Port(s)           | Source         | Direction | Access
+---------|-------------------|-------------------|----------------|-----------|--------
+1001     | SSH-from-public   | 22                | 10.0.1.0/24    | Inbound   | Allow
+1002     | HTTP-from-public  | 80                | 10.0.1.0/24    | Inbound   | Allow
+1003     | API-from-public   | 3000              | 10.0.1.0/24    | Inbound   | Allow
+1004     | Database-internal | 3306,5432,27017   | 10.0.2.0/24    | Inbound   | Allow
+
+================================================================================
+                                SSH ACCESS PATTERN
+================================================================================
+
+Connection Flow:
+Internet → Web VM (Public IP) → Backend/Database VMs (Private IPs)
+
+Step-by-Step SSH Access:
+
+1. SSH to Web VM (from your local machine):
+   ssh sevastopol@<WEB_VM_PUBLIC_IP>
+
+2. SSH to Backend VM (from Web VM):
+   ssh sevastopol@<BACKEND_VM_PRIVATE_IP>
+
+3. SSH to Database VM (from Web VM):
+   ssh sevastopol@<DATABASE_VM_PRIVATE_IP>
+
+Security Benefits:
+- Backend and Database VMs are not directly accessible from Internet
+- Web VM acts as a secure jump host/bastion
+- All traffic to private VMs must go through the public subnet
+- NSG rules enforce this security model
+
+================================================================================
+                            REPOSITORY STRUCTURE
+================================================================================
+
+CBD-3375/
+├── main.tf                    # Root module - orchestrates all components
+├── variables.tf               # Root variable definitions with defaults
+├── outputs.tf                 # Root outputs for important values
+├── locals.tf                  # Processes Docker installation scripts
+├── terraform.tfvars          # Current environment configuration
+├── terraform.tfvars.example  # Template for new environments
+├── terraform.tfstate         # Terraform state file
+├── terraform.tfstate.backup  # Terraform state backup
+├── modules/
+│   ├── resource_group/        # Resource group module
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── outputs.tf
+│   ├── networking/            # VNet, subnets, NSGs, NAT Gateway
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── outputs.tf
+│   └── virtual_machine/       # Reusable VM module
+│       ├── main.tf
+│       ├── variables.tf
+│       └── outputs.tf
+├── scripts/
+│   ├── install-docker-web.sh     # Docker installation for web VM
+│   └── install-docker-backend.sh # Docker installation for backend VM
+└── PROJECT_OVERVIEW.txt       # This documentation file
+
+================================================================================
+                            TERRAFORM OPERATIONS
+================================================================================
+
+Initial Setup:
+terraform init                # Initialize Terraform and download providers
+
+Planning:
+terraform plan                # Preview changes before applying
+
+Deployment:
+terraform apply               # Deploy the infrastructure
+terraform apply -auto-approve # Deploy without confirmation prompt
+
+Information:
+terraform output              # Show all output values
+terraform output web_vm_public_ip     # Show specific output
+terraform show                # Show current state details
+
+Cleanup:
+terraform destroy             # Remove all infrastructure
+terraform destroy -auto-approve      # Destroy without confirmation
+
+State Management:
+terraform state list          # List all resources in state
+terraform state show <resource>      # Show specific resource details
+
+================================================================================
+                            IMPORTANT OUTPUT VALUES
+================================================================================
+
+After deployment, these outputs will be available:
+
+Network Information:
+- vnet_name                   # Virtual network name
+- vnet_address_space          # VNet address space
+- public_subnet_name          # Public subnet name
+- private_subnet_name         # Private subnet name
+- public_nsg_name            # Public NSG name
+- private_nsg_name           # Private NSG name
+
+VM Information:
+- web_vm_name                # Web VM name
+- backend_vm_name            # Backend VM name  
+- database_vm_name           # Database VM name
+- vm_admin_username          # SSH username for all VMs
+
+IP Addresses:
+- web_vm_public_ip           # Public IP for SSH access
+- web_vm_private_ip          # Web VM private IP
+- backend_vm_private_ip      # Backend VM private IP (for jump SSH)
+- database_vm_private_ip     # Database VM private IP (for jump SSH)
+- nat_gateway_public_ip      # NAT Gateway public IP
+
+Resource Information:
+- resource_group_name        # Resource group name
+- resource_group_location    # Azure region
+
+================================================================================
+                            CONFIGURATION VALUES
+================================================================================
+
+Current Configuration (terraform.tfvars):
+
+Infrastructure:
+- Resource Group: CBD-3375-resources
+- Location: East US
+- Environment: production
+
+Networking:
+- VNet: CBD-3375-vnet (10.0.0.0/16)
+- Public Subnet: public-subnet (10.0.1.0/24)
+- Private Subnet: private-subnet (10.0.2.0/24)
+
+Virtual Machines:
+- Web VM: web-vm
+- Backend VM: backend-vm
+- Database VM: database-vm
+- VM Size: Standard_B1s
+- Admin User: sevastopol
+- Admin Password: sevastopol1234!
+
+Storage:
+- OS Disk: CBD-3375-osdisk
+- Caching: ReadWrite
+- Type: Standard_LRS
+
+Tags:
+- Environment: production
+- Project: CBD-3375-Virtualized Network Configuration on Azure
+- Owner: mprabesh
+
+================================================================================
+                            DEPLOYMENT CHECKLIST
+================================================================================
+
+Pre-Deployment:
+□ Azure CLI installed and authenticated
+□ Terraform installed (version 1.0+)
+□ Azure subscription access verified
+□ Resource provider permissions confirmed
+
+Deployment Steps:
+□ terraform init
+□ terraform plan (review changes)
+□ terraform apply
+□ Note down public IP addresses
+□ Test SSH access to web VM
+□ Test jump SSH to backend/database VMs
+□ Verify Docker installation on web/backend VMs
+
+Post-Deployment Verification:
+□ All VMs are running
+□ Public IP accessible for web VM
+□ SSH jump host access working
+□ Docker service running on web/backend VMs
+□ NSG rules properly configured
+□ NAT Gateway providing outbound access for private VMs
+
+================================================================================
+                            TROUBLESHOOTING GUIDE
+================================================================================
+
+Common Issues:
+
+1. Authentication Errors:
+   - Verify Azure CLI login: az account show
+   - Check subscription access: az account list
+   - Ensure proper permissions on subscription
+
+2. Resource Provider Issues:
+   - Error: Resource provider not registered
+   - Solution: Set resource_provider_registrations = "none" in provider block
+   - Or register manually: az provider register --namespace Microsoft.Compute
+
+3. SSH Connection Issues:
+   - Check NSG rules allow SSH from your IP
+   - Verify VM is running: Azure portal or terraform output
+   - Confirm correct username (sevastopol) and password
+
+4. Terraform State Issues:
+   - State file corrupted: Use terraform.tfstate.backup
+   - State drift: terraform refresh
+   - Resource conflicts: terraform import
+
+5. VM Bootstrap Issues:
+   - Docker not installed: Check cloud-init logs on VM
+   - Custom data errors: Verify base64 encoding in locals.tf
+
+Support Commands:
+terraform validate            # Check configuration syntax
+terraform fmt                # Format Terraform files
+terraform refresh            # Update state with real infrastructure
+az vm list --resource-group CBD-3375-resources    # List VMs in Azure
+
+================================================================================
+                            COST OPTIMIZATION NOTES
+================================================================================
+
+Current Setup Cost Factors:
+- 3x Standard_B1s VMs (~$8-15/month each)
+- 2x Public IPs (~$3-4/month each)
+- 1x NAT Gateway (~$45/month)
+- Storage and bandwidth (minimal)
+
+Total Estimated Cost: ~$75-85/month
+
+Cost Reduction Options:
+1. Use smaller VM sizes (Standard_A1_v2)
+2. Deallocate VMs when not in use
+3. Use single public IP with load balancer
+4. Consider Azure Container Instances for temporary workloads
+
+================================================================================
+                            SECURITY BEST PRACTICES
+================================================================================
+
+Implemented Security Measures:
+✓ Private subnets for backend/database tiers
+✓ Jump host pattern for SSH access
+✓ Network Security Groups with minimal required ports
+✓ NAT Gateway for outbound-only private access
+✓ Strong password policy
+✓ Resource tagging for governance
+
+Additional Security Recommendations:
+- Enable Azure Security Center
+- Implement SSH key authentication (disable passwords)
+- Add Azure Firewall for advanced filtering
+- Enable disk encryption
+- Implement backup policies
+- Use Azure Key Vault for secrets management
+- Enable monitoring and alerting
+
+================================================================================
+                            VERSION INFORMATION
+================================================================================
+
+Terraform Version: >= 1.0
+Azure Provider Version: >= 3.0
+Azure CLI Version: >= 2.0
+
+Last Updated: June 28, 2025
+Documentation Version: 1.0
+
+================================================================================
+                            SUPPORT AND CONTACTS
+================================================================================
+
+Project Owner: mprabesh
+Project: CBD-3375 Virtualized Network Configuration on Azure
+Repository: /home/ghost/Desktop/CBD-3375
+
+For questions or issues:
+1. Check this documentation
+2. Review Terraform logs
+3. Check Azure portal for resource status
+4. Consult Azure documentation
+
+================================================================================
+                                END OF DOCUMENT
+================================================================================
