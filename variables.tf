@@ -1,7 +1,7 @@
 variable "resource_group_name" {
   description = "Name of the resource group"
   type        = string
-  default     = "example-resources"
+  default     = "CBD-3375-resources"
 }
 
 variable "location" {
@@ -13,7 +13,7 @@ variable "location" {
 variable "vnet_name" {
   description = "Name of the virtual network"
   type        = string
-  default     = "example-vnet"
+  default     = "CBD-3375-vnet"
 }
 
 variable "vnet_address_space" {
@@ -49,13 +49,13 @@ variable "private_subnet_address_prefixes" {
 variable "network_interface_name" {
   description = "Name of the network interface"
   type        = string
-  default     = "example-nic"
+  default     = "ghost-nic"
 }
 
 variable "vm_name" {
   description = "Name of the virtual machine"
   type        = string
-  default     = "example-vm"
+  default     = "CBD-3375-vm"
 }
 
 variable "vm_size" {
@@ -67,20 +67,20 @@ variable "vm_size" {
 variable "admin_username" {
   description = "Admin username for the virtual machine"
   type        = string
-  default     = "azureuser"
+  default     = "sevastopol"
 }
 
 variable "admin_password" {
   description = "Admin password for the virtual machine"
   type        = string
   sensitive   = true
-  default     = "P@ssword1234!"
+  default     = "sevastopol1234!"
 }
 
 variable "os_disk_name" {
   description = "Name of the OS disk"
   type        = string
-  default     = "example-osdisk"
+  default     = "CBD-3375-osdisk"
 }
 
 variable "os_disk_caching" {
@@ -128,7 +128,7 @@ variable "tags" {
 variable "public_ip_name" {
   description = "Name of the public IP"
   type        = string
-  default     = "example-public-ip"
+  default     = "public-ip"
 }
 
 # VM Network Interface Names
