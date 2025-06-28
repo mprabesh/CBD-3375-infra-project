@@ -1,0 +1,50 @@
+provider "azurerm" {
+  features {}
+  
+  # Using Azure CLI authentication
+  # Explicitly setting subscription ID for clarity
+  subscription_id = "df7dc967-963c-4518-82bf-e1f24714f060"
+  
+  # Skip automatic resource provider registration
+  # This is often needed for student accounts with limited permissions
+  resource_provider_registrations = "none"
+}
+
+module "resource_group" {
+  source   = "./modules/resource_group"
+  name     = var.resource_group_name
+  location = var.location
+  tags     = var.tags
+}
+
+module "networking" {
+  source                   = "./modules/networking"
+  vnet_name               = var.vnet_name
+  vnet_address_space      = var.vnet_address_space
+  subnet_name             = var.subnet_name
+  subnet_address_prefixes = var.subnet_address_prefixes
+  network_interface_name  = var.network_interface_name
+  public_ip_name          = var.public_ip_name
+  location                = module.resource_group.location
+  resource_group_name     = module.resource_group.name
+  tags                    = var.tags
+}
+
+module "virtual_machine" {
+  source                 = "./modules/virtual_machine"
+  vm_name               = var.vm_name
+  resource_group_name   = module.resource_group.name
+  location              = module.resource_group.location
+  vm_size               = var.vm_size
+  admin_username        = var.admin_username
+  admin_password        = var.admin_password
+  network_interface_id  = module.networking.network_interface_id
+  os_disk_name          = var.os_disk_name
+  os_disk_caching       = var.os_disk_caching
+  storage_account_type  = var.storage_account_type
+  image_publisher       = var.image_publisher
+  image_offer           = var.image_offer
+  image_sku             = var.image_sku
+  image_version         = var.image_version
+  tags                  = var.tags
+}
