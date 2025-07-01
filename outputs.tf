@@ -127,3 +127,19 @@ output "ssh_public_key_secret_name" {
   description = "Name of the SSH public key secret in Key Vault"
   value       = "${var.ssh_key_name}-public"
 }
+
+# Security Information
+output "secure_ssh_access_command" {
+  description = "Command to securely download and use SSH key from Key Vault"
+  value       = "az keyvault secret download --vault-name ${var.key_vault_name} --name ${var.ssh_key_name}-private --file temp-key.pem && chmod 600 temp-key.pem"
+}
+
+output "ssh_cleanup_command" {
+  description = "Command to securely clean up temporary SSH key files"
+  value       = "rm temp-key.pem"
+}
+
+output "security_mode" {
+  description = "Current SSH key security mode"
+  value       = var.create_local_ssh_files ? "DEVELOPMENT (Local files created - Less Secure)" : "PRODUCTION (Key Vault only - Most Secure)"
+}

@@ -35,3 +35,9 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "create_local_ssh_files" {
+  description = "Whether to create local SSH key files (SECURITY WARNING: Not recommended for production)"
+  type        = bool
+  default     = false
+}

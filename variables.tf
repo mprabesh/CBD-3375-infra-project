@@ -200,6 +200,12 @@ variable "ssh_key_size" {
   default     = 2048
 }
 
+variable "create_local_ssh_files" {
+  description = "Whether to create local SSH key files (SECURITY WARNING: Not recommended for production)"
+  type        = bool
+  default     = false
+}
+
 # Azure Authentication Variables (not needed when using Azure CLI)
 # variable "client_id" {
 #   description = "Azure Service Principal Client ID"
