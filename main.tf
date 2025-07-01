@@ -41,9 +41,10 @@ module "key_vault" {
   location            = module.resource_group.location
   resource_group_name = module.resource_group.name
   key_vault_sku_name  = var.key_vault_sku_name
-  ssh_key_name        = var.ssh_key_name
-  ssh_key_size        = var.ssh_key_size
-  tags                = var.tags
+  ssh_key_name           = var.ssh_key_name
+  ssh_key_size           = var.ssh_key_size
+  create_local_ssh_files = var.create_local_ssh_files
+  tags                   = var.tags
 }
 
 # Web Server VM (Public Subnet)
