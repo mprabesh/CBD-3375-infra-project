@@ -9,7 +9,16 @@ resource "azurerm_linux_virtual_machine" "this" {
   ]
 
   admin_password                  = var.admin_password
-  disable_password_authentication = false
+  disable_password_authentication = var.disable_password_authentication
+
+  # SSH key configuration
+  dynamic "admin_ssh_key" {
+    for_each = var.ssh_public_key != null ? [1] : []
+    content {
+      username   = var.admin_username
+      public_key = var.ssh_public_key
+    }
+  }
 
   # Bootstrap script for Docker installation
   custom_data = var.custom_data

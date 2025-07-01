@@ -33,3 +33,23 @@ override.tf.json
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
+
+# SSH Keys - DO NOT COMMIT THESE
+ssh-keys/
+*.pem
+*.key
+id_rsa*
+id_ecdsa*
+id_ed25519*
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini

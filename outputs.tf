@@ -96,3 +96,34 @@ output "private_nsg_name" {
   description = "Name of the private subnet Network Security Group"
   value       = module.networking.private_nsg_name
 }
+
+# Key Vault Outputs
+output "key_vault_name" {
+  description = "Name of the Azure Key Vault"
+  value       = module.key_vault.key_vault_name
+}
+
+output "key_vault_uri" {
+  description = "URI of the Azure Key Vault"
+  value       = module.key_vault.key_vault_uri
+}
+
+output "ssh_public_key" {
+  description = "SSH public key content"
+  value       = module.key_vault.ssh_public_key
+}
+
+output "ssh_key_fingerprint" {
+  description = "SHA256 fingerprint of the SSH public key"
+  value       = module.key_vault.ssh_key_fingerprint
+}
+
+output "ssh_private_key_secret_name" {
+  description = "Name of the SSH private key secret in Key Vault"
+  value       = "${var.ssh_key_name}-private"
+}
+
+output "ssh_public_key_secret_name" {
+  description = "Name of the SSH public key secret in Key Vault"
+  value       = "${var.ssh_key_name}-public"
+}
