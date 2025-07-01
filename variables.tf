@@ -175,6 +175,37 @@ variable "database_vm_name" {
   default     = "database-vm"
 }
 
+# Azure Key Vault Configuration
+variable "key_vault_name" {
+  description = "Name of the Azure Key Vault"
+  type        = string
+  default     = "CBD-3375-kv"
+}
+
+variable "key_vault_sku_name" {
+  description = "SKU name for the Key Vault"
+  type        = string
+  default     = "standard"
+}
+
+variable "ssh_key_name" {
+  description = "Name of the SSH key to store in Key Vault"
+  type        = string
+  default     = "cbd-3375-ssh-key"
+}
+
+variable "ssh_key_size" {
+  description = "Size of the RSA SSH key in bits"
+  type        = number
+  default     = 2048
+}
+
+variable "create_local_ssh_files" {
+  description = "Whether to create local SSH key files (SECURITY WARNING: Not recommended for production)"
+  type        = bool
+  default     = false
+}
+
 # Azure Authentication Variables (not needed when using Azure CLI)
 # variable "client_id" {
 #   description = "Azure Service Principal Client ID"

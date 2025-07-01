@@ -80,3 +80,15 @@ variable "custom_data" {
   type        = string
   default     = null
 }
+
+variable "disable_password_authentication" {
+  description = "Whether to disable password authentication"
+  type        = bool
+  default     = false
+}
+
+variable "ssh_public_key" {
+  description = "SSH public key for authentication"
+  type        = string
+  default     = null
+}

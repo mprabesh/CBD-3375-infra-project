@@ -34,6 +34,19 @@ module "networking" {
   tags                            = var.tags
 }
 
+# Key Vault for SSH key storage
+module "key_vault" {
+  source              = "./modules/key_vault"
+  key_vault_name      = var.key_vault_name
+  location            = module.resource_group.location
+  resource_group_name = module.resource_group.name
+  key_vault_sku_name  = var.key_vault_sku_name
+  ssh_key_name           = var.ssh_key_name
+  ssh_key_size           = var.ssh_key_size
+  create_local_ssh_files = var.create_local_ssh_files
+  tags                   = var.tags
+}
+
 # Web Server VM (Public Subnet)
 module "web_vm" {
   source                 = "./modules/virtual_machine"
@@ -51,8 +64,10 @@ module "web_vm" {
   image_offer           = var.image_offer
   image_sku             = var.image_sku
   image_version         = var.image_version
-  custom_data           = local.web_vm_docker_script
-  tags                  = merge(var.tags, { "Role" = "WebServer", "Docker" = "enabled" })
+  custom_data                     = local.web_vm_docker_script
+  disable_password_authentication = true
+  ssh_public_key                  = module.key_vault.ssh_public_key
+  tags                            = merge(var.tags, { "Role" = "WebServer", "Docker" = "enabled" })
 }
 
 # Backend VM (Private Subnet)
@@ -72,8 +87,10 @@ module "backend_vm" {
   image_offer           = var.image_offer
   image_sku             = var.image_sku
   image_version         = var.image_version
-  custom_data           = local.backend_vm_docker_script
-  tags                  = merge(var.tags, { "Role" = "BackendServer", "Docker" = "enabled" })
+  custom_data                     = local.backend_vm_docker_script
+  disable_password_authentication = true
+  ssh_public_key                  = module.key_vault.ssh_public_key
+  tags                            = merge(var.tags, { "Role" = "BackendServer", "Docker" = "enabled" })
 }
 
 # Database VM (Private Subnet) - No Docker needed for database
@@ -93,6 +110,8 @@ module "database_vm" {
   image_offer           = var.image_offer
   image_sku             = var.image_sku
   image_version         = var.image_version
-  custom_data           = null
-  tags                  = merge(var.tags, { "Role" = "DatabaseServer" })
+  custom_data                     = null
+  disable_password_authentication = true
+  ssh_public_key                  = module.key_vault.ssh_public_key
+  tags                            = merge(var.tags, { "Role" = "DatabaseServer" })
 }
