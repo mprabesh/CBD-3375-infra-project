@@ -1,3 +1,7 @@
+name: Deploy App from Infra Artifact
+
+on:
+  workflow_dispatch:
 jobs:
   terraform:
     runs-on: ubuntu-latest
