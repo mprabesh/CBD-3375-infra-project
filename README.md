@@ -217,12 +217,12 @@ rm temp-key.pem
 ```
 Internet → Public IP → Web VM (10.0.1.x) → Backend VM (10.0.2.x) → Database VM (10.0.2.x)
                          ↓                      ↓                     ↓
-                    React App:80          Node.js API:3000      PostgreSQL:5432
+                    React App:80          Node.js API:3003      PostgreSQL:5432
 ```
 
 ### Access URLs
 - **Web Frontend**: `http://[WEB-VM-PUBLIC-IP]`
-- **Backend API**: `http://[BACKEND-VM-PRIVATE-IP]:3000` (internal only)
+- **Backend API**: `http://[BACKEND-VM-PRIVATE-IP]:3003` (internal only)
 - **Database**: `[DATABASE-VM-PRIVATE-IP]:5432` (internal only)
 - **Automation**: Docker installation scripts
 
