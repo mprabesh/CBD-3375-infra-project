@@ -311,12 +311,12 @@ deploy_frontend() {
         # Pull the latest image
         sudo docker pull $FRONTEND_IMAGE
 
-        # Run the frontend container with BACKEND_API env
+        # Run the frontend container with BACKEND_URL env
         sudo docker run -d \
             --name frontend-web \
             --restart unless-stopped \
             -p 80:80 \
-            -e BACKEND_API="$BACKEND_VM_PRIVATE_IP:3003" \
+            -e BACKEND_URL="http://$BACKEND_VM_PRIVATE_IP:3003" \
             $FRONTEND_IMAGE
 
         # Wait for container to start
