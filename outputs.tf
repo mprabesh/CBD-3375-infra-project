@@ -71,7 +71,7 @@ output "database_vm_name" {
   value       = module.database_vm.vm_name
 }
 
-output "database_vm_private_ip" {
+output "db_vm_private_ip" {
   description = "Private IP address of the database virtual machine"
   value       = module.networking.database_vm_private_ip
 }

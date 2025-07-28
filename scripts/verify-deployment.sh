@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Docker Deployment Verification Script
-# This script helps you verify that the deploy-docker.sh script ran successfully
+# Hybrid Deployment Verification Script
+# This script helps you verify that the deploy-git-repos.sh script ran successfully
 
 set -e
 
@@ -36,11 +36,11 @@ print_error() {
 }
 
 show_usage() {
-    echo "🔍 Docker Deployment Verification Script"
+    echo "🔍 Hybrid Deployment Verification Script"
     echo "======================================="
     echo ""
-    echo "This script verifies that your Docker containers are running correctly"
-    echo "after running the deploy-docker.sh script."
+    echo "This script verifies that your hybrid deployment is running correctly"
+    echo "after running the deploy-git-repos.sh script."
     echo ""
     echo "Usage: $0 [OPTIONS]"
     echo ""
@@ -58,7 +58,7 @@ show_usage() {
 
 # Default values
 SSH_OPTS="-o StrictHostKeyChecking=no -o ConnectTimeout=30 -o UserKnownHostsFile=/dev/null"
-SSH_USER="sevastopol"
+SSH_USER="vmuser"
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -103,7 +103,7 @@ extract_from_terraform() {
     
     WEB_IP=$(terraform output -raw web_vm_public_ip 2>/dev/null || echo "")
     BACKEND_IP=$(terraform output -raw backend_vm_private_ip 2>/dev/null || echo "")
-    DATABASE_IP=$(terraform output -raw database_vm_private_ip 2>/dev/null || echo "")
+    DB_VM_PRIVATE_IP=$(terraform output -raw db_vm_private_ip 2>/dev/null || echo "")
     KEY_VAULT=$(terraform output -raw key_vault_name 2>/dev/null || echo "")
     
     print_success "Extracted values from Terraform outputs"
@@ -128,10 +128,10 @@ fi
 
 # Download SSH key
 print_status "Downloading SSH key from Azure Key Vault..."
-if az keyvault secret download \
+if az keyvault secret show \
     --vault-name "$KEY_VAULT" \
-    --name "cbd-3375-ssh-key-private" \
-    --file "temp-ssh-key.pem" &> /dev/null; then
+    --name "vm-ssh-private-key" \
+    --query value -o tsv > temp-ssh-key.pem 2>/dev/null; then
     chmod 600 temp-ssh-key.pem
     print_success "SSH key downloaded successfully"
 else
@@ -155,6 +155,12 @@ check_deployment_logs() {
             grep -E "(docker|pull|run)" ~/.bash_history | tail -10 2>/dev/null || echo "No Docker commands in history"
         fi
         
+        # Check git command history  
+        if [ -f ~/.bash_history ]; then
+            echo "📁 Recent Git commands:"
+            grep -E "(git|clone|pull)" ~/.bash_history | tail -10 2>/dev/null || echo "No Git commands in history"
+        fi
+        
         # Check system logs for docker activities
         echo ""
         echo "📊 Docker system events (last 20):"
@@ -169,65 +175,72 @@ EOF
 
 # Function to verify container status
 verify_containers() {
-    print_header "🐳 CONTAINER STATUS VERIFICATION"
+    print_header "� HYBRID DEPLOYMENT STATUS VERIFICATION"
     
-    print_status "Checking containers on Web VM (VM1)..."
+    print_status "Checking frontend container on Web VM (VM1)..."
     ssh -i temp-ssh-key.pem $SSH_OPTS $SSH_USER@$WEB_IP << 'EOF'
-        echo "📊 Web VM (VM1) Container Status:"
-        echo "================================="
+        echo "📊 Web VM (VM1) Frontend Container Status:"
+        echo "=========================================="
         
-        if sudo docker ps | grep -q react-frontend; then
-            echo "✅ React Frontend container is running"
-            sudo docker ps | grep react-frontend
+        if sudo docker ps | grep -q frontend-web; then
+            echo "✅ Frontend container is running"
+            sudo docker ps | grep frontend-web
             
             # Check container logs
             echo ""
             echo "📋 Last 5 log entries:"
-            sudo docker logs react-frontend --tail 5 2>/dev/null || echo "No logs available"
+            sudo docker logs frontend-web --tail 5 2>/dev/null || echo "No logs available"
         else
-            echo "❌ React Frontend container is NOT running"
+            echo "❌ Frontend container is NOT running"
             
             # Check if container exists but stopped
-            if sudo docker ps -a | grep -q react-frontend; then
+            if sudo docker ps -a | grep -q frontend-web; then
                 echo "⚠️ Container exists but is stopped:"
-                sudo docker ps -a | grep react-frontend
+                sudo docker ps -a | grep frontend-web
                 echo ""
                 echo "📋 Last log entries:"
-                sudo docker logs react-frontend --tail 10 2>/dev/null || echo "No logs available"
+                sudo docker logs frontend-web --tail 10 2>/dev/null || echo "No logs available"
             else
-                echo "❌ No react-frontend container found"
+                echo "❌ No frontend-web container found"
             fi
         fi
 EOF
 
     # Check backend via jump host
-    print_status "Checking containers on Backend VM (VM2) via jump host..."
+    print_status "Checking backend application on Backend VM (VM2) via jump host..."
     ssh -i temp-ssh-key.pem $SSH_OPTS $SSH_USER@$WEB_IP << EOF
-        if [ -f ~/backend-key.pem ]; then
-            echo "📊 Backend VM (VM2) Container Status:"
-            echo "===================================="
+        if [ -f ~/.ssh/vm_key ]; then
+            echo "📊 Backend VM (VM2) Node.js Application Status:"
+            echo "=============================================="
             
-            ssh -i ~/backend-key.pem $SSH_OPTS $SSH_USER@$BACKEND_IP << 'BACKEND_EOF'
-                if sudo docker ps | grep -q nodejs-api; then
-                    echo "✅ Node.js API container is running"
-                    sudo docker ps | grep nodejs-api
+            ssh -i ~/.ssh/vm_key $SSH_OPTS $SSH_USER@$BACKEND_IP << 'BACKEND_EOF'
+                # Check PM2 processes
+                if command -v pm2 &> /dev/null; then
+                    echo "🟢 PM2 is available"
+                    echo ""
+                    echo "📊 PM2 Process Status:"
+                    pm2 status 2>/dev/null || echo "No PM2 processes running"
                     
                     echo ""
-                    echo "📋 Last 5 log entries:"
-                    sudo docker logs nodejs-api --tail 5 2>/dev/null || echo "No logs available"
+                    echo "📋 PM2 Logs (last 10 lines):"
+                    pm2 logs --lines 10 2>/dev/null || echo "No PM2 logs available"
                 else
-                    echo "❌ Node.js API container is NOT running"
-                    
-                    if sudo docker ps -a | grep -q nodejs-api; then
-                        echo "⚠️ Container exists but is stopped:"
-                        sudo docker ps -a | grep nodejs-api
-                        echo ""
-                        echo "📋 Last log entries:"
-                        sudo docker logs nodejs-api --tail 10 2>/dev/null || echo "No logs available"
-                    else
-                        echo "❌ No nodejs-api container found"
-                    fi
+                    echo "❌ PM2 not found"
                 fi
+                
+                # Check if Node.js application is running on port 3000
+                echo ""
+                echo "🔍 Port 3000 status:"
+                if netstat -tuln | grep -q ":3000 "; then
+                    echo "✅ Application is listening on port 3000"
+                else
+                    echo "❌ No application listening on port 3000"
+                fi
+                
+                # Check Node.js version
+                echo ""
+                echo "📋 Node.js version:"
+                node --version 2>/dev/null || echo "Node.js not installed"
 BACKEND_EOF
         else
             echo "⚠️ Backend SSH key not found - cannot check Backend VM"
@@ -235,35 +248,35 @@ BACKEND_EOF
 EOF
 
     # Check database via jump host
-    print_status "Checking containers on Database VM (VM3) via jump host..."
+    print_status "Checking database container on Database VM (VM3) via jump host..."
     ssh -i temp-ssh-key.pem $SSH_OPTS $SSH_USER@$WEB_IP << EOF
-        if [ -f ~/database-key.pem ]; then
+        if [ -f ~/.ssh/vm_key ]; then
             echo "📊 Database VM (VM3) Container Status:"
             echo "====================================="
             
-            ssh -i ~/database-key.pem $SSH_OPTS $SSH_USER@$DATABASE_IP << 'DATABASE_EOF'
-                if sudo docker ps | grep -q postgresql-db; then
-                    echo "✅ PostgreSQL Database container is running"
-                    sudo docker ps | grep postgresql-db
+            ssh -i ~/.ssh/vm_key $SSH_OPTS $SSH_USER@$DB_VM_PRIVATE_IP << 'DATABASE_EOF'
+                if sudo docker ps | grep -q mongodb-db; then
+                    echo "✅ MongoDB Database container is running"
+                    sudo docker ps | grep mongodb-db
                     
                     echo ""
                     echo "📋 Last 5 log entries:"
-                    sudo docker logs postgresql-db --tail 5 2>/dev/null || echo "No logs available"
+                    sudo docker logs mongodb-db --tail 5 2>/dev/null || echo "No logs available"
                     
                     echo ""
                     echo "🔍 Database connection test:"
-                    sudo docker exec postgresql-db pg_isready -U appuser -d appdb 2>/dev/null && echo "✅ Database is ready" || echo "❌ Database not ready"
+                    sudo docker exec mongodb-db mongosh --eval "db.adminCommand('ping')" --quiet 2>/dev/null && echo "✅ MongoDB is ready" || echo "❌ MongoDB not ready"
                 else
-                    echo "❌ PostgreSQL Database container is NOT running"
+                    echo "❌ MongoDB Database container is NOT running"
                     
-                    if sudo docker ps -a | grep -q postgresql-db; then
+                    if sudo docker ps -a | grep -q mongodb-db; then
                         echo "⚠️ Container exists but is stopped:"
-                        sudo docker ps -a | grep postgresql-db
+                        sudo docker ps -a | grep mongodb-db
                         echo ""
                         echo "📋 Last log entries:"
-                        sudo docker logs postgresql-db --tail 10 2>/dev/null || echo "No logs available"
+                        sudo docker logs mongodb-db --tail 10 2>/dev/null || echo "No logs available"
                     else
-                        echo "❌ No postgresql-db container found"
+                        echo "❌ No mongodb-db container found"
                     fi
                 fi
 DATABASE_EOF
@@ -313,8 +326,8 @@ show_summary() {
     if [[ -n "$BACKEND_IP" ]]; then
         echo "  Backend VM: $BACKEND_IP"
     fi
-    if [[ -n "$DATABASE_IP" ]]; then
-        echo "  Database VM: $DATABASE_IP"
+    if [[ -n "$DB_VM_PRIVATE_IP" ]]; then
+        echo "  Database VM: $DB_VM_PRIVATE_IP"
     fi
     echo "  Key Vault: $KEY_VAULT"
     echo ""
@@ -324,8 +337,8 @@ show_summary() {
     if [[ -n "$BACKEND_IP" ]]; then
         echo "  ⚙️ Backend API: http://$BACKEND_IP:3000 (internal)"
     fi
-    if [[ -n "$DATABASE_IP" ]]; then
-        echo "  🗄️ Database: $DATABASE_IP:5432 (internal)"
+    if [[ -n "$DB_VM_PRIVATE_IP" ]]; then
+        echo "  🗄️ Database: $DB_VM_PRIVATE_IP:27017 (internal)"
     fi
     echo ""
     
@@ -333,16 +346,19 @@ show_summary() {
     echo "  # SSH to Web VM:"
     echo "  ssh -i temp-ssh-key.pem $SSH_USER@$WEB_IP"
     echo ""
-    echo "  # Check all containers:"
+    echo "  # Check frontend container:"
     echo "  ssh -i temp-ssh-key.pem $SSH_USER@$WEB_IP 'sudo docker ps'"
     echo ""
-    echo "  # View container logs:"
-    echo "  ssh -i temp-ssh-key.pem $SSH_USER@$WEB_IP 'sudo docker logs react-frontend'"
+    echo "  # Check backend PM2 processes:"
+    echo "  ssh -i temp-ssh-key.pem $SSH_USER@$WEB_IP 'ssh -i ~/.ssh/vm_key $SSH_USER@$BACKEND_IP pm2 status'"
+    echo ""
+    echo "  # View frontend container logs:"
+    echo "  ssh -i temp-ssh-key.pem $SSH_USER@$WEB_IP 'sudo docker logs frontend-web'"
 }
 
 # Main execution
 main() {
-    print_header "🚀 DOCKER DEPLOYMENT VERIFICATION"
+    print_header "🚀 HYBRID DEPLOYMENT VERIFICATION"
     
     print_status "Starting verification process..."
     echo "Web VM: $WEB_IP"

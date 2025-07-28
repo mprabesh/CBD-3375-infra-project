@@ -87,10 +87,10 @@ module "backend_vm" {
   image_offer                     = var.image_offer
   image_sku                       = var.image_sku
   image_version                   = var.image_version
-  custom_data                     = local.backend_vm_docker_script
+  custom_data                     = local.backend_vm_nodejs_script
   disable_password_authentication = true
   ssh_public_key                  = module.key_vault.ssh_public_key
-  tags                            = merge(var.tags, { "Role" = "BackendServer", "Docker" = "enabled" })
+  tags                            = merge(var.tags, { "Role" = "BackendServer", "NodeJS" = "enabled" })
 }
 
 # Database VM (Private Subnet) - No Docker needed for database
