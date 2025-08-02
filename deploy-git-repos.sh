@@ -35,7 +35,7 @@ PURPLE='\033[0;35m'
 NC='\033[0m' # No Color
 
 # Default configuration settings
-FRONTEND_IMAGE="magarp0723/blogapp-frontend:v4"                 # Your custom frontend Docker image
+FRONTEND_IMAGE="magarp0723/blogapp-frontend:v6"                 # Your custom frontend Docker image
 BACKEND_REPO="https://github.com/mprabesh/blog-service.git"     # Node.js backend repo
 DATABASE_IMAGE="mongo:7.0"                                     # MongoDB database
 
