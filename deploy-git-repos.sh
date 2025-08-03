@@ -193,11 +193,12 @@ get_ssh_key() {
 
     SSH_KEY_FILE="./vm_ssh_key"
 
-    if az keyvault secret show --name cbd-3375-ssh-key-private --vault-name "$KEY_VAULT_NAME" --query value -o tsv > "$SSH_KEY_FILE" 2>/dev/null; then
+    if az keyvault secret show --name "cbd-3375-ssh-key-private" --vault-name "$KEY_VAULT_NAME" --query value -o tsv > "$SSH_KEY_FILE" 2>/dev/null; then
         chmod 600 "$SSH_KEY_FILE"
         print_success "SSH private key retrieved from Key Vault"
     else
         print_error "Failed to retrieve SSH private key from Key Vault"
+        print_error "Make sure the secret 'cbd-3375-ssh-key-private' exists in Key Vault '$KEY_VAULT_NAME'"
         exit 1
     fi
 }
@@ -311,7 +312,7 @@ deploy_frontend() {
         # Pull the latest image
         sudo docker pull $FRONTEND_IMAGE
 
-        # Run the frontend container with BACKEND_URL env
+        # Run the frontend container with direct backend connection (nginx proxy already in container)
         sudo docker run -d \
             --name frontend-web \
             --restart unless-stopped \
@@ -331,31 +332,20 @@ deploy_frontend() {
             exit 1
         fi
 
-        # Configure nginx proxy for API calls (add reverse proxy configuration)
-        # Create a temporary nginx config for API proxying
-        sudo docker exec frontend-web sh -c "
-            # Check if nginx config directory exists
-            if [ -d '/etc/nginx/conf.d' ]; then
-                cat > /etc/nginx/conf.d/api-proxy.conf << 'NGINX_CONF'
-# API proxy configuration
-location /api {
-    proxy_pass http://$BACKEND_VM_PRIVATE_IP:3000;
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade \\\$http_upgrade;
-    proxy_set_header Connection 'upgrade';
-    proxy_set_header Host \\\$host;
-    proxy_cache_bypass \\\$http_upgrade;
-    proxy_set_header X-Real-IP \\\$remote_addr;
-    proxy_set_header X-Forwarded-For \\\$proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto \\\$scheme;
-}
-NGINX_CONF
-                # Reload nginx if possible
-                nginx -s reload 2>/dev/null || echo 'Note: Could not reload nginx config automatically'
+        # Test backend connectivity from web VM
+        if curl -s --connect-timeout 5 http://$BACKEND_VM_PRIVATE_IP:3003/api/health &>/dev/null; then
+            echo "✅ Backend is reachable from web VM"
+        else
+            echo "⚠️ Backend is not reachable from web VM - checking connectivity..."
+            # Try basic connectivity
+            if ping -c 2 $BACKEND_VM_PRIVATE_IP &>/dev/null; then
+                echo "✅ Backend VM is pingable"
             else
-                echo 'Note: Nginx config directory not found, API proxy not configured'
+                echo "❌ Backend VM is not pingable"
             fi
-        " || echo "Note: Could not configure API proxy automatically"
+        fi
+        
+        echo "✅ Frontend container configured to use internal nginx proxy"
 
         echo "Frontend deployment completed"
 EOF
@@ -398,9 +388,11 @@ deploy_backend() {
                 
                 # Create environment file
                 cat > .env << 'ENV_EOF'
-SECRET_KEY="appleisred"
+SECRET_KEY=appleisred
 PORT=3003
-MONGO_URL="mongodb+srv://prabesh:prabesh@cluster0.e1nz5ox.mongodb.net/blog?retryWrites=true&w=majority&appName=Cluster0"
+PROD_PORT=3003
+DEV_PORT=3003
+MONGO_URL=mongodb+srv://prabesh:prabesh@cluster0.e1nz5ox.mongodb.net/blog?retryWrites=true&w=majority&appName=Cluster0
 ENV_EOF
                 
                 # Seed the database if seedAll.js exists
@@ -413,16 +405,46 @@ ENV_EOF
                 pm2 stop all || true
                 pm2 delete all || true
 
-                # Start the application with PM2
-                if [ -f "index.js" ]; then
-                    pm2 start index.js --name "backend-api"
-                elif [ -f "server.js" ]; then
-                    pm2 start server.js --name "backend-api"
-                elif [ -f "app.js" ]; then
-                    pm2 start app.js --name "backend-api"
+                # Create PM2 ecosystem file with proper environment variables
+                cat > ecosystem.config.js << 'PM2_EOF'
+module.exports = {
+  apps: [{
+    name: 'backend-api',
+    script: 'npm',
+    args: 'run start:prod',
+    env: {
+      PORT: 3003,
+      PROD_PORT: 3003,
+      DEV_PORT: 3003,
+      SERVER_PORT: 3003,
+      BACKEND_PORT: 3003,
+      SECRET_KEY: 'appleisred',
+      MONGO_URL: 'mongodb+srv://prabesh:prabesh@cluster0.e1nz5ox.mongodb.net/blog?retryWrites=true&w=majority&appName=Cluster0'
+    }
+  }]
+};
+PM2_EOF
+
+                # Start with PM2 ecosystem file
+                pm2 start ecosystem.config.js
+
+                # Alternative: If ecosystem doesn't work, try direct npm start:prod
+                if ! pm2 list | grep -q "backend-api.*online"; then
+                    echo "Ecosystem approach failed, trying direct npm run start:prod..."
+                    pm2 delete backend-api || true
+                    PORT=3003 pm2 start npm --name backend-api -- run start:prod
+                fi
+
+                # Wait for application to start
+                sleep 5
+                
+                # Verify the application is listening on port 3003
+                echo "Checking if backend is listening on port 3003..."
+                if ss -tlnp | grep -q ":3003"; then
+                    echo "✅ Backend is listening on port 3003"
                 else
-                    echo "No main file found, starting with npm start"
-                    pm2 start npm --name "backend-api" -- start
+                    echo "❌ Backend is not listening on port 3003 - checking logs..."
+                    pm2 logs backend-api --lines 10
                 fi
 
                 # Save PM2 configuration
@@ -534,12 +556,15 @@ verify_deployments() {
         print_warning "Frontend may not be responding correctly"
     fi
     
-    # Test backend through frontend proxy
-    print_status "Testing backend through proxy..."
+    # Test backend through frontend container's nginx proxy
+    print_status "Testing backend through frontend container proxy..."
     if curl -s -o /dev/null -w "%{http_code}" http://$WEB_VM_PUBLIC_IP/api/health | grep -q "200"; then
-        print_success "Backend is responding through proxy (HTTP 200)"
+        print_success "Backend is responding through frontend container proxy (HTTP 200)"
     else
-        print_warning "Backend may not be responding correctly through proxy"
+        print_warning "Backend may not be responding correctly through frontend container proxy"
+        print_status "Checking if backend is running directly..."
+        ssh -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=no $VM_USER@$WEB_VM_PUBLIC_IP \
+            "ssh -i ~/.ssh/vm_key -o StrictHostKeyChecking=no $VM_USER@$BACKEND_VM_PRIVATE_IP 'curl -s http://localhost:3003/api/health || pm2 status'"
     fi
     
     print_status "Deployment verification completed"
